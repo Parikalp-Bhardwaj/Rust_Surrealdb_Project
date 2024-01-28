@@ -5,22 +5,24 @@ use validator::Validate;
 mod db;
 use crate::db::Database;
 use uuid::Uuid;
+mod errors;
+use crate::errors::PeopleError;
 
 
 #[get("/get_people")]
-async fn get_people(db: Data<Database>) -> impl Responder {
+async fn get_people(db: Data<Database>) -> Result<Json<Vec<People>>,PeopleError>{
     // HttpResponse::Ok().body("Pizzzas available!")
     let people = db.get_all_people().await;
     println!("{:?} ",people);
     match people {
-        Some(found_people) => {HttpResponse::Ok().body(format!("{:?}",found_people ))},
-        None => HttpResponse::Ok().body("Error!"),
+        Some(found_people) => Ok(Json(found_people)),
+        None => Err(PeopleError::NoPeoplesFound),
     }
 
 }
 
 #[post("/add_people")]
-async fn add_people(body: Json<AddPeopleRequest>, db:Data<Database>) -> impl Responder {
+async fn add_people(body: Json<AddPeopleRequest>, db:Data<Database>) -> Result<Json<People>,PeopleError> {
     let is_valid = body.validate();
     println!("{:?} is_valid ",is_valid);
     match is_valid{
@@ -37,10 +39,8 @@ async fn add_people(body: Json<AddPeopleRequest>, db:Data<Database>) -> impl Res
                 _age,
                 _country)).await;
             match new_people{
-                Some(added_people) => {
-                    HttpResponse::Ok().body(format!("People added is {:?}",added_people))
-                },
-                None => HttpResponse::Ok().body(format!("Error added people")),
+                Some(added_people) =>  {Ok(Json(added_people))},
+                None => Err(PeopleError::AddingPeopleFailed),
             }
             
         }
@@ -57,18 +57,44 @@ async fn add_people(body: Json<AddPeopleRequest>, db:Data<Database>) -> impl Res
                 })
                 .collect();
 
-            HttpResponse::BadRequest().body(format!("Validation error: {}", error_messages.join(", ")))
+            // HttpResponse::BadRequest().body(format!("Validation error: {}", error_messages.join(", ")))
+           Err(PeopleError::ValidateError(error_messages.join(", ").to_string()))
         }
         // Err(ValidationErrors({"age": Field([ValidationError { code: "range", message: Some("age should be in range"), params: {"max": Number(40.0), "min": Number(18.0), "value": Number(17)} }])})) is_valid 
     }
 }
 
-#[patch("/updatepeople")]
-async fn update_people(updated_people_url: Path<UpdatedPeopleURL>) -> impl Responder {
+#[patch("/update_people/{uuid}")]
+async fn update_people(updated_people_url: Path<UpdatedPeopleURL>, db:Data<Database>, body:Json<AddPeopleRequest>) -> Result<Json<People>, PeopleError> {
     let uuid = updated_people_url.into_inner().uuid;
+    let is_valid = body.validate();
+    match is_valid{
+        Ok(_) => {
+            let people_name = body.people_name.clone();
+            let _age = body.age;
+            let _country = body.country.clone();
+            let new_uuid = uuid.clone();
 
-    
-    HttpResponse::Ok().body("Updating a people!")
+            let new_people = db.updated_people(uuid,People::new(String::from(
+                new_uuid), 
+                people_name,
+                _age,
+                _country)).await;
+            match new_people{
+                Some(added_people) =>  {Ok(Json(added_people))},
+                None => Err(PeopleError::AddingPeopleFailed),
+            }
+            
+        },
+        Err(_) => Err(PeopleError::NoSuchPeopleFound)
+    }
+    // let updated_result = db.updated_people(uuid).await;
+    // match updated_result{
+    //     Some(updated) => Ok(Json(updated)),
+    //     None => Err(PeopleError::NoSuchPeopleFound),
+    // }
+    // }
+    // HttpResponse::Ok().body("Updating a people!")
 }
 
 
