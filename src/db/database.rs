@@ -78,4 +78,14 @@ impl Database {
         }
     }
 
+    pub async fn delete_people(&self, uuid: String) -> Option<People> {
+        let delete_data = self.client.delete(("people", &uuid)).await;
+        match delete_data {
+            Ok(deleted) => match deleted {
+                Some(data) => data,
+                None => None,
+            },
+            Err(_) => None,
+        }
+    }
 }

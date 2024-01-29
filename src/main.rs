@@ -1,4 +1,4 @@
-use actix_web::{get, patch, post, App, HttpResponse, HttpServer, Responder,web::Path,web::Json, web::Data};
+use actix_web::{get, patch, post,delete, App, HttpResponse, HttpServer, Responder,web::Path,web::Json, web::Data};
 mod models;
 use crate::models::ppl::{AddPeopleRequest,UpdatedPeopleURL,People};
 use validator::Validate;
@@ -97,8 +97,17 @@ async fn update_people(updated_people_url: Path<UpdatedPeopleURL>, db:Data<Datab
     // HttpResponse::Ok().body("Updating a people!")
 }
 
-
-
+#[delete("/delete/{uuid}")]
+async fn delete_data(delete_people_uuid: Path<UpdatedPeopleURL>,db: Data<Database>) -> Result<Json<People>,PeopleError>{
+    let uuid = delete_people_uuid.into_inner().uuid;
+    let delete_ppl = db.delete_people(uuid).await;
+    // println!("{:?} ",delete_ppl);
+    // HttpResponse::Ok().body("deleted people")
+    match delete_ppl{
+        Some(data) => {Ok(Json(data))},
+        None => Err(PeopleError::NoSuchPeopleFound)
+    }
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -113,6 +122,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_people)
             .service(add_people)
             .service(update_people)
+            .service(delete_data)
             
     })
     .bind("127.0.0.1:8081")?
