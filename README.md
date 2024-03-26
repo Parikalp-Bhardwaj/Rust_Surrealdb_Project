@@ -1,6 +1,4 @@
-
-
-# This project demonstrates basic CRUD (Create, Read, Update, Delete) operations implemented in Rust using the SurrealDB database.
+This project demonstrates basic CRUD (Create, Read, Update, Delete) operations implemented in Rust using the SurrealDB database.
 
 ### Requirements
 * Rust programming language (version 1.73.0 or later)
