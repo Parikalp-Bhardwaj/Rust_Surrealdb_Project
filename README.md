@@ -1,4 +1,4 @@
-## Rust CRUD Operations with SurrealDB
+### Rust CRUD Operations with SurrealDB
 This project demonstrates basic CRUD (Create, Read, Update, Delete) operations implemented in Rust using the SurrealDB database.
 
 Requirements
