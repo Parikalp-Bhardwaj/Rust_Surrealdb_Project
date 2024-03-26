@@ -20,13 +20,14 @@ Install Rust from rustup.rs if you haven't already.
 
    Clone the desired repository to your local machine using the following command in your terminal or command prompt:
 
-   ```bash 
-   git clone https://github.com/Parikalp-Bhardwaj/Rust_Surrealdb_Project.git ```
+```bash 
+git clone https://github.com/Parikalp-Bhardwaj/Rust_Surrealdb_Project.git
+```
 
 4. **Navigate to the project directory:**
 
 ```bash 
-   cd ./Rust_Surrealdb_Project 
+cd ./Rust_Surrealdb_Project 
 ```
 
 5. **Build the project:**
